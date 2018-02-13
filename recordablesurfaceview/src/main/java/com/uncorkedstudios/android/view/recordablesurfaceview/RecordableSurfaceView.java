@@ -250,6 +250,10 @@ public class RecordableSurfaceView extends SurfaceView {
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
 
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mMediaRecorder.setAudioSamplingRate(44100);
+        mMediaRecorder.setAudioEncodingBitRate(96000);
+
+
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
 
         mMediaRecorder.setVideoEncodingBitRate(12000000);
