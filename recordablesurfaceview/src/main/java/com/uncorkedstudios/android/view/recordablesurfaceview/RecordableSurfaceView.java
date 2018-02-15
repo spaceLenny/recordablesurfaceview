@@ -264,29 +264,51 @@ public class RecordableSurfaceView extends SurfaceView {
         mMediaRecorder.prepare();
 
     }
-
-
+    
     /**
-     * @throws IllegalStateException when there is an error starting the recording
      * @see MediaRecorder#start()
+     * @return true if the recording started successfully and false if not
      */
-    public void startRecording() throws IllegalStateException {
-
-        mMediaRecorder.start();
-        mIsRecording.set(true);
-
+    public boolean startRecording() {
+        boolean success = true;
+        try {
+            mMediaRecorder.start();
+            mIsRecording.set(true);
+        } catch (IllegalStateException e) {
+            success = false;
+            mIsRecording.set(false);
+            mMediaRecorder.reset();
+            mMediaRecorder.release();
+        }
+        return success;
     }
 
     /**
-     * Stops the {@link MediaRecorder} and sets the internal state of this object to 'Not recording'
-     * It is important to call this before attempting to play back the video that has been recorded.
+     * Stops the {@link MediaRecorder} and sets the internal state of this object to 'Not
+     * recording'
+     * It is important to call this before attempting to play back the video that has been
+     * recorded.
+     *
+     * @return true if the recording stopped successfully and false if not
+     * @throws IllegalStateException if not recording when called
      */
-    public void stopRecording() {
+    public boolean stopRecording() throws IllegalStateException {
         if (mIsRecording.get()) {
-            mMediaRecorder.stop();
-            mMediaRecorder.release();
-            mIsRecording.set(false);
+            boolean success = true;
+            try {
+                mMediaRecorder.stop();
+                mIsRecording.set(false);
+            } catch (RuntimeException e) {
+                success = false;
+                Log.d(TAG, "stopRecording: ", e);
+            } finally {
+                mMediaRecorder.release();
+            }
+            return success;
+        } else {
+            throw new IllegalStateException("Cannot stop. Is not recording.");
         }
+
     }
 
     /**
