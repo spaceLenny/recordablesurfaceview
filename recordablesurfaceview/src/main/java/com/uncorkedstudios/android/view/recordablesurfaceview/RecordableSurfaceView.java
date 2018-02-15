@@ -300,7 +300,6 @@ public class RecordableSurfaceView extends SurfaceView {
                 mIsRecording.set(false);
             } catch (RuntimeException e) {
                 success = false;
-                Log.d(TAG, "stopRecording: ", e);
             } finally {
                 mMediaRecorder.release();
             }
