@@ -126,7 +126,6 @@ public class RecordableSurfaceView extends SurfaceView {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-
     /**
      * Performs necessary setup operations such as creating a MediaCodec persistent surface and
      * setting up initial state.
@@ -139,16 +138,20 @@ public class RecordableSurfaceView extends SurfaceView {
      */
     public void doSetup() {
 
-        mSurface = MediaCodec.createPersistentInputSurface();
-
-        mARRenderThread = new ARRenderThread();
+        if (!mHasGLContext.get()) {
+            mSurface = MediaCodec.createPersistentInputSurface();
+            mARRenderThread = new ARRenderThread();
+        }
 
         this.getHolder().addCallback(mARRenderThread);
+
+        if (getHolder().getSurface().isValid()) {
+            mARRenderThread.surfaceCreated(null);
+        }
 
         mPaused = true;
 
     }
-
 
     /**
      * Pauses the render thread.
@@ -164,13 +167,8 @@ public class RecordableSurfaceView extends SurfaceView {
      * This method is useful for use in conjunction with the Activity lifecycle
      */
     public void resume() {
-        if (mARRenderThread.isInterrupted()
-                || mARRenderThread.getState() == Thread.State.TERMINATED) {
-            doSetup();
-            mPaused = false;
-        } else {
-            mPaused = false;
-        }
+        doSetup();
+        mPaused = false;
     }
 
     /**
@@ -427,7 +425,9 @@ public class RecordableSurfaceView extends SurfaceView {
 
         @Override
         public void run() {
-
+            if (mHasGLContext.get()) {
+                return;
+            }
             mEGLDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
             int[] version = new int[2];
             EGL14.eglInitialize(mEGLDisplay, version, 0, version, 1);
@@ -532,7 +532,6 @@ public class RecordableSurfaceView extends SurfaceView {
                 try {
                     Thread.sleep((long) (1f / 60f * 1000f));
                 } catch (InterruptedException intex) {
-
                     if (mRendererCallbacksWeakReference != null
                             && mRendererCallbacksWeakReference.get() != null) {
                         mRendererCallbacksWeakReference.get().onSurfaceDestroyed();
@@ -552,6 +551,7 @@ public class RecordableSurfaceView extends SurfaceView {
                         }
 
                         EGL14.eglDestroyContext(mEGLDisplay, mEGLContext);
+                        mHasGLContext.set(false);
                         EGL14.eglReleaseThread();
                         EGL14.eglTerminate(mEGLDisplay);
                         mSurface.release();
@@ -596,6 +596,7 @@ public class RecordableSurfaceView extends SurfaceView {
         public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
             mLoop.set(false);
             this.interrupt();
+            getHolder().removeCallback(ARRenderThread.this);
         }
     }
 
