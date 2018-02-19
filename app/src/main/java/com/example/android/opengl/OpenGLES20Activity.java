@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.Menu;
@@ -114,6 +115,21 @@ public class OpenGLES20Activity extends Activity {
 
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+            @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // Note that order matters - see the note in onPause(), the reverse applies here.
+        mGLView.resume();
+        try {
+            mOutputFile = createVideoOutputFile();
+            android.graphics.Point size = new android.graphics.Point();
+            getWindowManager().getDefaultDisplay().getRealSize(size);
+            mGLView.initRecorder(mOutputFile, size.x, size.y, null, null);
+        } catch (IOException ioex) {
+            Log.e(TAG, "Couldn't re-init recording", ioex);
+        }
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

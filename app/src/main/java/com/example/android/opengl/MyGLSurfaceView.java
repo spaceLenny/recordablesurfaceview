@@ -36,7 +36,6 @@ public class MyGLSurfaceView extends RecordableSurfaceView implements Recordable
         // Set the Renderer for drawing on the GLSurfaceView
         mRenderer = new MyGLRenderer();
         setRendererCallbacks(this);
-        doSetup();
     }
 
     private final float TOUCH_SCALE_FACTOR = 180.0f / 320;
