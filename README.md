@@ -8,25 +8,31 @@ RecordableSurfaceView is a lightweight library designed to bring MP4 recording o
 
 ## How to get set up
 
-  - Clone this repo
-  - Add the following permissions to your Manifest (and request them!)
+  1. Add RecordableSurfaceview to your project
+  
+  ```
+  implementation 'com.uncorkedstudios.android:recordable-surfaceview:1.0
+  ```
+  
+  2. Add the following permissions to your Manifest (and request them!)
+ 
 ```xml   
 <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 ```
 
-  - Add RecordableSurfaceview to your project
-  - in your main GL Activity or top-level renderer, implement         
+  3. in your main GL Activity or top-level renderer, implement         
 
 ```java
 public class SomeActivity extends Activity implements RecordableSurfaceView.RendererCallbacks
 ```
 
-  - Set the callbacks on the ```RecordableSurfaceView``` and  init the recording stack:
- 
-        mSurfaceView.setRendererCallbacks(this);
-        mSurfaceView.doSetup();
+  4. Set the callbacks on the ```RecordableSurfaceView``` and  init the recording stack:
+```java    
+mSurfaceView.setRendererCallbacks(this);
+mSurfaceView.doSetup();
+```
 
 # How to record:
   - Ensure you've called ```doSetup``` and requested (and have been granted!) permissions.
@@ -42,7 +48,6 @@ public class SomeActivity extends Activity implements RecordableSurfaceView.Rend
 [MediaRecorder.OnInfoListener](https://developer.android.com/reference/android/media/MediaRecorder.OnInfoListener.html)
 
 ## TODO:
-  - build ```aar``` to distribute library via gradle/maven
   - expose configuration options of media recorder
 
 
@@ -52,5 +57,3 @@ License
 
 Apache 2.0
 
-
-**Useful Android Stuff from the community!**
