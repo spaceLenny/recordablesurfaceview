@@ -1,5 +1,14 @@
 apply plugin: 'com.android.library'
 
+// The following is the pattern followed for implementing this library in other projects...
+// i.e. implementation 'PUBLISH_GROUP_ID:PUBLISH_ARTIFACT_ID:PUBLISH_VERSION
+//   -> implementation 'com.uncorkedstudios.android:recordable-surfaceview:1.0
+ext {
+    PUBLISH_GROUP_ID = 'com.uncorkedstudios.android'
+    PUBLISH_ARTIFACT_ID = 'recordable-surfaceview'
+    PUBLISH_VERSION = '1.0'
+}
+
 android {
     compileSdkVersion 27
     buildToolsVersion "27.0.1"
@@ -26,3 +35,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:27.0.2'
 }
+
+// The following is a link to a script that we can run to get the zip file required for releasing
+// a new version in bintray. See this Medium article below for more information
+// https://medium.com/@daniellevass/how-to-publish-your-android-studio-library-to-jcenter-5384172c4739
+apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
