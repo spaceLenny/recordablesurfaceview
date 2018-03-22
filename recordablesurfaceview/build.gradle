@@ -6,7 +6,7 @@ apply plugin: 'com.android.library'
 ext {
     PUBLISH_GROUP_ID = 'com.uncorkedstudios.android'
     PUBLISH_ARTIFACT_ID = 'recordable-surfaceview'
-    PUBLISH_VERSION = '1.0'
+    PUBLISH_VERSION = '1.1'
 }
 
 android {
