@@ -236,30 +236,32 @@ public class RecordableSurfaceView extends SurfaceView {
             MediaRecorder.OnErrorListener errorListener, MediaRecorder.OnInfoListener infoListener)
             throws IOException {
 
-        mMediaRecorder = new MediaRecorder();
+        MediaRecorder mediaRecorder = new MediaRecorder();
 
-        mMediaRecorder.setOnInfoListener(infoListener);
+        mediaRecorder.setOnInfoListener(infoListener);
 
-        mMediaRecorder.setOnErrorListener(errorListener);
+        mediaRecorder.setOnErrorListener(errorListener);
 
-        mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-        mMediaRecorder.setInputSurface(mSurface);
-        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+        mediaRecorder.setInputSurface(mSurface);
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
 
-        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mMediaRecorder.setAudioSamplingRate(44100);
-        mMediaRecorder.setAudioEncodingBitRate(96000);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mediaRecorder.setAudioSamplingRate(44100);
+        mediaRecorder.setAudioEncodingBitRate(96000);
 
 
-        mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
+        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
 
-        mMediaRecorder.setVideoEncodingBitRate(12000000);
-        mMediaRecorder.setVideoFrameRate(30);
-        mMediaRecorder.setVideoSize(displayWidth, displayHeight);
+        mediaRecorder.setVideoEncodingBitRate(12000000);
+        mediaRecorder.setVideoFrameRate(30);
+        mediaRecorder.setVideoSize(displayWidth, displayHeight);
 
-        mMediaRecorder.setOutputFile(saveToFile.getPath());
-        mMediaRecorder.prepare();
+        mediaRecorder.setOutputFile(saveToFile.getPath());
+        mediaRecorder.prepare();
+
+        mMediaRecorder = mediaRecorder;
 
     }
     
