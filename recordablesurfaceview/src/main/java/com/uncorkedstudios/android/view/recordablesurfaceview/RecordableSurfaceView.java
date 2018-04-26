@@ -405,6 +405,7 @@ public class RecordableSurfaceView extends SurfaceView {
                 EGL14.EGL_ALPHA_SIZE, 8,
                 EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
                 0x3142, 1,
+                EGL14.EGL_DEPTH_SIZE, 16,
                 EGL14.EGL_NONE
         };
 
