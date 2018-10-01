@@ -43,6 +43,7 @@ buildscript {
 group = 'com.uncorkedstudios.android'
 version = "1.5.0"
 publish {
+    repoName = "RecordableSurfaceView"
     userOrg = 'uncorkedstudios'
     artifactId = 'recordable-surfaceview'
     desc = 'A drop-in replacement for GLSurfaceView that can be used to record to an mp4 movie.'
