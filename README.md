@@ -11,7 +11,7 @@ RecordableSurfaceView is a lightweight library designed to bring MP4 recording o
   1. Add RecordableSurfaceview to your project
   
   ```
-  implementation 'com.uncorkedstudios.android:recordable-surfaceview:1.1.1'
+  implementation 'com.uncorkedstudios.android:recordable-surfaceview:1.5.0'
   ```
   
   2. Add the following permissions to your Manifest (and request them!)

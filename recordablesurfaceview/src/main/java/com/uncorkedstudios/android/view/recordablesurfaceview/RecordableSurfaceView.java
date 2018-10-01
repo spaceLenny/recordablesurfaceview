@@ -34,6 +34,8 @@ import android.view.SurfaceView;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,8 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Used to record video of the content of a SurfaceView, backed by a GL render loop.
  *
  * Intended as a near-drop-in replacement for {@link GLSurfaceView}, but reliant on callbacks
- * instead of
- * an explicit {@link GLSurfaceView.Renderer}.
+ * instead of an explicit {@link GLSurfaceView.Renderer}.
  *
  *
  * <p><strong>Note:</strong> Currently, RecordableSurfaceView does not record video on the emulator
@@ -337,7 +338,15 @@ public class RecordableSurfaceView extends SurfaceView {
     }
 
 
-
+    /**
+     * Queue a runnable to be run on the GL rendering thread.
+     * @param runnable - the runnable to queue
+     */
+    public void queueEvent(Runnable runnable) {
+        if (mARRenderThread != null) {
+            mARRenderThread.mRunnableQueue.add(runnable);
+        }
+    }
 
     /**
      * Lifecycle events for the SurfaceView and renderer. These callbacks (unless specified)
@@ -397,6 +406,7 @@ public class RecordableSurfaceView extends SurfaceView {
 
         EGLSurface mEGLSurfaceMedia;
 
+        Queue<Runnable> mRunnableQueue = new PriorityQueue<>();
 
         int[] config = {
                 EGL14.EGL_RED_SIZE, 8,
@@ -530,6 +540,11 @@ public class RecordableSurfaceView extends SurfaceView {
                                     mEGLContext);
                         }
                     }
+
+                    while (mRunnableQueue.size() > 0) {
+                        Runnable event = mRunnableQueue.remove();
+                        event.run();
+                    }
                 }
 
                 try {
@@ -593,6 +608,9 @@ public class RecordableSurfaceView extends SurfaceView {
             }
 
 
+        }
+
+        public void queueEvent(Runnable r) {
         }
 
         @Override
