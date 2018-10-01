@@ -8,8 +8,8 @@ android {
     defaultConfig {
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 3
-        versionName "1.5.0"
+        versionCode 4
+        versionName "1.5.1"
 
     }
 
@@ -41,7 +41,7 @@ buildscript {
 }
 
 group = 'com.uncorkedstudios.android'
-version = "1.5.0"
+version = "1.5.1"
 publish {
     repoName = "RecordableSurfaceView"
     userOrg = 'uncorkedstudios'

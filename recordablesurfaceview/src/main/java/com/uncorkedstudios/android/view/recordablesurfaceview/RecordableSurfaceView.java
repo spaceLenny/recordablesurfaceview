@@ -34,6 +34,7 @@ import android.view.SurfaceView;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -406,7 +407,7 @@ public class RecordableSurfaceView extends SurfaceView {
 
         EGLSurface mEGLSurfaceMedia;
 
-        Queue<Runnable> mRunnableQueue = new PriorityQueue<>();
+        LinkedList<Runnable> mRunnableQueue = new LinkedList<>();
 
         int[] config = {
                 EGL14.EGL_RED_SIZE, 8,
@@ -608,9 +609,6 @@ public class RecordableSurfaceView extends SurfaceView {
             }
 
 
-        }
-
-        public void queueEvent(Runnable r) {
         }
 
         @Override
