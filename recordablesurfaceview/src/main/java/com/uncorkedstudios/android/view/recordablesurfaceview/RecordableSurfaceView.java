@@ -238,31 +238,7 @@ public class RecordableSurfaceView extends SurfaceView {
             MediaRecorder.OnErrorListener errorListener, MediaRecorder.OnInfoListener infoListener)
             throws IOException {
 
-        MediaRecorder mediaRecorder = new MediaRecorder();
-
-        mediaRecorder.setOnInfoListener(infoListener);
-
-        mediaRecorder.setOnErrorListener(errorListener);
-
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-        mediaRecorder.setInputSurface(mSurface);
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setAudioSamplingRate(44100);
-        mediaRecorder.setAudioEncodingBitRate(96000);
-
-        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
-
-        mediaRecorder.setVideoEncodingBitRate(12000000);
-        mediaRecorder.setVideoFrameRate(30);
-        mediaRecorder.setVideoSize(displayWidth, displayHeight);
-
-        mediaRecorder.setOutputFile(saveToFile.getPath());
-        mediaRecorder.prepare();
-
-        mMediaRecorder = mediaRecorder;
+        initRecorder(saveToFile, displayWidth, displayHeight, 0, errorListener, infoListener);
     }
 
     /**
