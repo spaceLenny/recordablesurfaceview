@@ -253,12 +253,57 @@ public class RecordableSurfaceView extends SurfaceView {
         mediaRecorder.setAudioSamplingRate(44100);
         mediaRecorder.setAudioEncodingBitRate(96000);
 
+        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
+
+        mediaRecorder.setVideoEncodingBitRate(12000000);
+        mediaRecorder.setVideoFrameRate(30);
+        mediaRecorder.setVideoSize(displayWidth, displayHeight);
+
+        mediaRecorder.setOutputFile(saveToFile.getPath());
+        mediaRecorder.prepare();
+
+        mMediaRecorder = mediaRecorder;
+    }
+
+    /**
+     * Iitializes the {@link MediaRecorder} ad relies on its lifecycle and requirements.
+     *
+     * @param saveToFile    the File object to record into. Assumes the calling program has
+     *                      permission to write to this file
+     * @param displayWidth  the Width of the display
+     * @param displayHeight the Height of the display
+     * @param orientationHint the orientation to record the video (0, 90, 180, or 270)
+     * @param errorListener optional {@link MediaRecorder.OnErrorListener} for recording state callbacks
+     * @param infoListener  optional {@link MediaRecorder.OnInfoListener} for info callbacks
+     * @see MediaRecorder
+     */
+    @SuppressWarnings({"all"})
+    public void initRecorder(File saveToFile, int displayWidth, int displayHeight,
+            int orientationHint, MediaRecorder.OnErrorListener errorListener,
+            MediaRecorder.OnInfoListener infoListener) throws IOException {
+
+        MediaRecorder mediaRecorder = new MediaRecorder();
+
+        mediaRecorder.setOnInfoListener(infoListener);
+
+        mediaRecorder.setOnErrorListener(errorListener);
+
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+        mediaRecorder.setInputSurface(mSurface);
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mediaRecorder.setAudioSamplingRate(44100);
+        mediaRecorder.setAudioEncodingBitRate(96000);
 
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
 
         mediaRecorder.setVideoEncodingBitRate(12000000);
         mediaRecorder.setVideoFrameRate(30);
         mediaRecorder.setVideoSize(displayWidth, displayHeight);
+
+        mediaRecorder.setOrientationHint(orientationHint);
 
         mediaRecorder.setOutputFile(saveToFile.getPath());
         mediaRecorder.prepare();
