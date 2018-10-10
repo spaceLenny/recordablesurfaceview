@@ -34,6 +34,9 @@ import android.view.SurfaceView;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,8 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Used to record video of the content of a SurfaceView, backed by a GL render loop.
  *
  * Intended as a near-drop-in replacement for {@link GLSurfaceView}, but reliant on callbacks
- * instead of
- * an explicit {@link GLSurfaceView.Renderer}.
+ * instead of an explicit {@link GLSurfaceView.Renderer}.
  *
  *
  * <p><strong>Note:</strong> Currently, RecordableSurfaceView does not record video on the emulator
@@ -236,6 +238,26 @@ public class RecordableSurfaceView extends SurfaceView {
             MediaRecorder.OnErrorListener errorListener, MediaRecorder.OnInfoListener infoListener)
             throws IOException {
 
+        initRecorder(saveToFile, displayWidth, displayHeight, 0, errorListener, infoListener);
+    }
+
+    /**
+     * Iitializes the {@link MediaRecorder} ad relies on its lifecycle and requirements.
+     *
+     * @param saveToFile    the File object to record into. Assumes the calling program has
+     *                      permission to write to this file
+     * @param displayWidth  the Width of the display
+     * @param displayHeight the Height of the display
+     * @param orientationHint the orientation to record the video (0, 90, 180, or 270)
+     * @param errorListener optional {@link MediaRecorder.OnErrorListener} for recording state callbacks
+     * @param infoListener  optional {@link MediaRecorder.OnInfoListener} for info callbacks
+     * @see MediaRecorder
+     */
+    @SuppressWarnings({"all"})
+    public void initRecorder(File saveToFile, int displayWidth, int displayHeight,
+            int orientationHint, MediaRecorder.OnErrorListener errorListener,
+            MediaRecorder.OnInfoListener infoListener) throws IOException {
+
         MediaRecorder mediaRecorder = new MediaRecorder();
 
         mediaRecorder.setOnInfoListener(infoListener);
@@ -251,12 +273,13 @@ public class RecordableSurfaceView extends SurfaceView {
         mediaRecorder.setAudioSamplingRate(44100);
         mediaRecorder.setAudioEncodingBitRate(96000);
 
-
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
 
         mediaRecorder.setVideoEncodingBitRate(12000000);
         mediaRecorder.setVideoFrameRate(30);
         mediaRecorder.setVideoSize(displayWidth, displayHeight);
+
+        mediaRecorder.setOrientationHint(orientationHint);
 
         mediaRecorder.setOutputFile(saveToFile.getPath());
         mediaRecorder.prepare();
@@ -337,7 +360,15 @@ public class RecordableSurfaceView extends SurfaceView {
     }
 
 
-
+    /**
+     * Queue a runnable to be run on the GL rendering thread.
+     * @param runnable - the runnable to queue
+     */
+    public void queueEvent(Runnable runnable) {
+        if (mARRenderThread != null) {
+            mARRenderThread.mRunnableQueue.add(runnable);
+        }
+    }
 
     /**
      * Lifecycle events for the SurfaceView and renderer. These callbacks (unless specified)
@@ -397,6 +428,7 @@ public class RecordableSurfaceView extends SurfaceView {
 
         EGLSurface mEGLSurfaceMedia;
 
+        LinkedList<Runnable> mRunnableQueue = new LinkedList<>();
 
         int[] config = {
                 EGL14.EGL_RED_SIZE, 8,
@@ -529,6 +561,11 @@ public class RecordableSurfaceView extends SurfaceView {
                             EGL14.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface,
                                     mEGLContext);
                         }
+                    }
+
+                    while (mRunnableQueue.size() > 0) {
+                        Runnable event = mRunnableQueue.remove();
+                        event.run();
                     }
                 }
 

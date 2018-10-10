@@ -1,15 +1,15 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "27.0.3"
+    compileSdkVersion 28
+    buildToolsVersion '28.0.2'
 
 
     defaultConfig {
         minSdkVersion 24
-        targetSdkVersion 27
-        versionCode 2
-        versionName "1.1.1"
+        targetSdkVersion 28
+        versionCode 4
+        versionName "1.5.1"
 
     }
 
@@ -24,30 +24,28 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
 }
 
-// The following is a link to a script that we can run to get the zip file required for releasing
-// a new version in bintray. See this Medium article below for more information
-// https://medium.com/@daniellevass/how-to-publish-your-android-studio-library-to-jcenter-5384172c4739
-//apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
-apply plugin: 'com.novoda.bintray-release' // must be applied after your artifact generating plugin (eg. java / com.android.library)
+//old plugin didn't work with gradle 4.4+ so this fork is where i'm at.
+apply plugin: "guru.stefma.bintrayrelease"
 
 buildscript {
     repositories {
         jcenter()
+        google()
     }
     dependencies {
-        classpath 'com.novoda:bintray-release:0.8.1'
+        classpath "guru.stefma.bintrayrelease:bintrayrelease:1.0.0"
     }
 }
 
+group = 'com.uncorkedstudios.android'
+version = "1.5.1"
 publish {
-    repoName = 'RecordableSurfaceView'
+    repoName = "RecordableSurfaceView"
     userOrg = 'uncorkedstudios'
-    groupId = 'com.uncorkedstudios.android'
     artifactId = 'recordable-surfaceview'
-    publishVersion = '1.1.1'
-    desc = 'Recent updates'
+    desc = 'A drop-in replacement for GLSurfaceView that can be used to record to an mp4 movie.'
     website = 'https://github.com/UncorkedStudios/recordablesurfaceview'
 }
