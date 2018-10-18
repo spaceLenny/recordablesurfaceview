@@ -2,14 +2,14 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.2'
+    buildToolsVersion '28.0.3'
 
 
     defaultConfig {
         minSdkVersion 24
         targetSdkVersion 28
         versionCode 4
-        versionName "1.5.1"
+        versionName "1.5.2"
 
     }
 
@@ -23,7 +23,7 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+//    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:28.0.0'
 }
 
@@ -36,13 +36,14 @@ buildscript {
         google()
     }
     dependencies {
-        classpath "guru.stefma.bintrayrelease:bintrayrelease:1.0.0"
+        classpath "guru.stefma.bintrayrelease:bintrayrelease:1.1.0"
     }
 }
 
 group = 'com.uncorkedstudios.android'
-version = "1.5.1"
+version = "1.5.0"
 publish {
+    dryRun = false
     repoName = "RecordableSurfaceView"
     userOrg = 'uncorkedstudios'
     artifactId = 'recordable-surfaceview'
