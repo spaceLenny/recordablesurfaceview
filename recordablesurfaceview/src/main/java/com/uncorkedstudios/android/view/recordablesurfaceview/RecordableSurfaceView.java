@@ -277,7 +277,14 @@ public class RecordableSurfaceView extends SurfaceView {
 
         mediaRecorder.setVideoEncodingBitRate(12000000);
         mediaRecorder.setVideoFrameRate(30);
-        mediaRecorder.setVideoSize(displayWidth, displayHeight);
+        
+        int outWidth = 1080, outHeight = 1920;
+        if (displayWidth > displayHeight) {
+            outWidth = 1920;
+            outHeight = 1080;
+        }
+        
+        mediaRecorder.setVideoSize(outWidth, outHeight);
 
         mediaRecorder.setOrientationHint(orientationHint);
 
