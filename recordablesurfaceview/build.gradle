@@ -9,7 +9,7 @@ android {
         minSdkVersion 24
         targetSdkVersion 28
         versionCode 4
-        versionName "1.5.2"
+        versionName "1.5.3"
 
     }
 
@@ -41,7 +41,7 @@ buildscript {
 }
 
 group = 'com.uncorkedstudios.android'
-version = "1.5.0"
+version = "1.5.3"
 publish {
     dryRun = false
     repoName = "RecordableSurfaceView"
