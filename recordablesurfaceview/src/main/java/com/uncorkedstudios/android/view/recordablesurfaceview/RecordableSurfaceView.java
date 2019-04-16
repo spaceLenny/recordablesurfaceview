@@ -562,7 +562,9 @@ public class RecordableSurfaceView extends SurfaceView {
                                     mEGLContext);
                             if (mRendererCallbacksWeakReference != null
                                     && mRendererCallbacksWeakReference.get() != null) {
+                                GLES20.glViewport(0, 0, 1080, 1920);
                                 mRendererCallbacksWeakReference.get().onDrawFrame();
+                                GLES20.glViewport(0, 0, mWidth, mHeight);
                             }
                             EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurfaceMedia);
                             EGL14.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface,
