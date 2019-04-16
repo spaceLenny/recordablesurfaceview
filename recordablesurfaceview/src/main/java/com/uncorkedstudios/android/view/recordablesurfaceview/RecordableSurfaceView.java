@@ -76,6 +76,10 @@ public class RecordableSurfaceView extends SurfaceView {
 
     private int mHeight = 0;
 
+    private int mOutWidth = 1080;
+
+    private int mOutHeight = 1920;
+
     private boolean mPaused = false;
 
     private MediaRecorder mMediaRecorder;
@@ -278,13 +282,13 @@ public class RecordableSurfaceView extends SurfaceView {
         mediaRecorder.setVideoEncodingBitRate(12000000);
         mediaRecorder.setVideoFrameRate(30);
         
-        int outWidth = 1080, outHeight = 1920;
+
         if (displayWidth > displayHeight) {
-            outWidth = 1920;
-            outHeight = 1080;
+            mOutWidth = 1920;
+            mOutHeight = 1080;
         }
         
-        mediaRecorder.setVideoSize(outWidth, outHeight);
+        mediaRecorder.setVideoSize(mOutWidth, mOutHeight);
 
         mediaRecorder.setOrientationHint(orientationHint);
 
@@ -562,7 +566,9 @@ public class RecordableSurfaceView extends SurfaceView {
                                     mEGLContext);
                             if (mRendererCallbacksWeakReference != null
                                     && mRendererCallbacksWeakReference.get() != null) {
+                                GLES20.glViewport(0, 0, mOutWidth, mOutHeight);
                                 mRendererCallbacksWeakReference.get().onDrawFrame();
+                                GLES20.glViewport(0, 0, mWidth, mHeight);
                             }
                             EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurfaceMedia);
                             EGL14.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface,
