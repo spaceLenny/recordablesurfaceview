@@ -16,6 +16,8 @@ package com.uncorkedstudios.android.view.recordablesurfaceview;
 
 import android.content.Context;
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.media.MediaRecorder;
 import android.opengl.EGL14;
 import android.opengl.EGLConfig;
@@ -76,9 +78,10 @@ public class RecordableSurfaceView extends SurfaceView {
 
     private int mHeight = 0;
 
-    private int mOutWidth = 1080;
+    private int mAspectWidth = 0;
 
-    private int mOutHeight = 1920;
+    private int mAspectHeight = 0;
+
 
     private boolean mPaused = false;
 
@@ -281,14 +284,26 @@ public class RecordableSurfaceView extends SurfaceView {
 
         mediaRecorder.setVideoEncodingBitRate(12000000);
         mediaRecorder.setVideoFrameRate(30);
-        
 
-        if (displayWidth > displayHeight) {
-            mOutWidth = 1920;
-            mOutHeight = 1080;
+        int tempHeight = displayHeight;
+        int tempWidth = displayWidth;
+        int destWidth = 1080;
+        int destHeight = 1920;
+
+        float ratio = ((float)tempHeight / (float)tempWidth);
+
+        if (tempWidth > tempHeight) {
+            tempWidth = displayHeight;
+            tempHeight = displayWidth;
+            ratio = ((float)tempHeight / (float)tempWidth);
+            destWidth = 1920;
+            destHeight = 1080;
         }
-        
-        mediaRecorder.setVideoSize(mOutWidth, mOutHeight);
+
+        mAspectWidth = (int) (destWidth * ratio);
+        mAspectHeight = (int) (destHeight * ratio);
+
+        mediaRecorder.setVideoSize(mAspectWidth, mAspectHeight);
 
         mediaRecorder.setOrientationHint(orientationHint);
 
@@ -298,7 +313,8 @@ public class RecordableSurfaceView extends SurfaceView {
         mMediaRecorder = mediaRecorder;
 
     }
-    
+
+
     /**
      * @see MediaRecorder#start()
      * @return true if the recording started successfully and false if not
@@ -566,7 +582,7 @@ public class RecordableSurfaceView extends SurfaceView {
                                     mEGLContext);
                             if (mRendererCallbacksWeakReference != null
                                     && mRendererCallbacksWeakReference.get() != null) {
-                                GLES20.glViewport(0, 0, mOutWidth, mOutHeight);
+                                GLES20.glViewport(0, 0, mAspectWidth, mAspectHeight);
                                 mRendererCallbacksWeakReference.get().onDrawFrame();
                                 GLES20.glViewport(0, 0, mWidth, mHeight);
                             }
