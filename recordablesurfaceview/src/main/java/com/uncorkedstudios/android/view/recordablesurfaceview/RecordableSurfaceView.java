@@ -16,8 +16,6 @@ package com.uncorkedstudios.android.view.recordablesurfaceview;
 
 import android.content.Context;
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
-import android.media.MediaCodecList;
 import android.media.MediaRecorder;
 import android.opengl.EGL14;
 import android.opengl.EGLConfig;
@@ -29,6 +27,7 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -37,21 +36,18 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.LinkedList;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Used to record video of the content of a SurfaceView, backed by a GL render loop.
- *
+ * <p>
  * Intended as a near-drop-in replacement for {@link GLSurfaceView}, but reliant on callbacks
  * instead of an explicit {@link GLSurfaceView.Renderer}.
  *
  *
  * <p><strong>Note:</strong> Currently, RecordableSurfaceView does not record video on the emulator
  * due to a dependency on {@link MediaRecorder}.</p>
- *
  */
 public class RecordableSurfaceView extends SurfaceView {
 
@@ -78,9 +74,9 @@ public class RecordableSurfaceView extends SurfaceView {
 
     private int mHeight = 0;
 
-    private int mAspectWidth = 0;
+    private int mDesiredWidth = 0;
 
-    private int mAspectHeight = 0;
+    private int mDesiredHeight = 0;
 
 
     private boolean mPaused = false;
@@ -131,14 +127,14 @@ public class RecordableSurfaceView extends SurfaceView {
      */
     @SuppressWarnings({"UnusedDeclaration"})
     public RecordableSurfaceView(Context context, AttributeSet attrs, int defStyleAttr,
-            int defStyleRes) {
+                                 int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
     /**
      * Performs necessary setup operations such as creating a MediaCodec persistent surface and
      * setting up initial state.
-     *
+     * <p>
      * Also links the SurfaceHolder that manages the Surface View to the render thread for lifecycle
      * callbacks
      *
@@ -172,7 +168,7 @@ public class RecordableSurfaceView extends SurfaceView {
     /**
      * Resumes a paused render thread, or in the case of an interrupted or terminated
      * render thread, re-calls {@link #doSetup()} to build/start the GL context again.
-     *
+     * <p>
      * This method is useful for use in conjunction with the Activity lifecycle
      */
     public void resume() {
@@ -205,7 +201,7 @@ public class RecordableSurfaceView extends SurfaceView {
      * RecordableSurfaceView#RENDERMODE_WHEN_DIRTY}, the renderer only rendered when the surface is
      * created, or when {@link RecordableSurfaceView#requestRender()} is called. Defaults to {@link
      * RecordableSurfaceView#RENDERMODE_CONTINUOUSLY}.
-     *
+     * <p>
      * Using {@link RecordableSurfaceView#RENDERMODE_WHEN_DIRTY} can improve battery life and
      * overall system performance by allowing the GPU and CPU to idle when the view does not need
      * to
@@ -221,7 +217,7 @@ public class RecordableSurfaceView extends SurfaceView {
      * This method is typically used when the render mode has been set to {@link
      * RecordableSurfaceView#RENDERMODE_WHEN_DIRTY},  so that frames are only rendered on demand.
      * May be called from any thread.
-     *
+     * <p>
      * Must not be called before a renderer has been set.
      */
     @SuppressWarnings({"UnusedDeclaration"})
@@ -242,28 +238,40 @@ public class RecordableSurfaceView extends SurfaceView {
      */
     @SuppressWarnings({"all"})
     public void initRecorder(File saveToFile, int displayWidth, int displayHeight,
-            MediaRecorder.OnErrorListener errorListener, MediaRecorder.OnInfoListener infoListener)
+                             MediaRecorder.OnErrorListener errorListener, MediaRecorder.OnInfoListener infoListener)
             throws IOException {
 
-        initRecorder(saveToFile, displayWidth, displayHeight, 0, errorListener, infoListener);
+        initRecorder(saveToFile, displayWidth, displayHeight, displayWidth, displayHeight, 0,
+                errorListener, infoListener);
     }
+
+
+    public void initRecorder(File saveToFile, int displayWidth, int displayHeight,
+                             int orientationHint, MediaRecorder.OnErrorListener errorListener,
+                             MediaRecorder.OnInfoListener infoListener) throws IOException {
+        initRecorder(saveToFile, displayWidth, displayHeight, displayWidth, displayHeight,
+                orientationHint, errorListener, infoListener);
+    }
+
 
     /**
      * Iitializes the {@link MediaRecorder} ad relies on its lifecycle and requirements.
      *
-     * @param saveToFile    the File object to record into. Assumes the calling program has
-     *                      permission to write to this file
-     * @param displayWidth  the Width of the display
-     * @param displayHeight the Height of the display
+     * @param saveToFile      the File object to record into. Assumes the calling program has
+     *                        permission to write to this file
+     * @param displayWidth    the Width of the display
+     * @param displayHeight   the Height of the display
      * @param orientationHint the orientation to record the video (0, 90, 180, or 270)
-     * @param errorListener optional {@link MediaRecorder.OnErrorListener} for recording state callbacks
-     * @param infoListener  optional {@link MediaRecorder.OnInfoListener} for info callbacks
+     * @param errorListener   optional {@link MediaRecorder.OnErrorListener} for recording state callbacks
+     * @param infoListener    optional {@link MediaRecorder.OnInfoListener} for info callbacks
      * @see MediaRecorder
      */
     @SuppressWarnings({"all"})
     public void initRecorder(File saveToFile, int displayWidth, int displayHeight,
-            int orientationHint, MediaRecorder.OnErrorListener errorListener,
-            MediaRecorder.OnInfoListener infoListener) throws IOException {
+                             int desiredWidth, int desiredHeight, int orientationHint,
+                             MediaRecorder.OnErrorListener errorListener,
+                             MediaRecorder.OnInfoListener infoListener)
+            throws IOException {
 
         MediaRecorder mediaRecorder = new MediaRecorder();
 
@@ -285,25 +293,9 @@ public class RecordableSurfaceView extends SurfaceView {
         mediaRecorder.setVideoEncodingBitRate(12000000);
         mediaRecorder.setVideoFrameRate(30);
 
-        int tempHeight = displayHeight;
-        int tempWidth = displayWidth;
-        int destWidth = 1080;
-        int destHeight = 1920;
-
-        float ratio = ((float)tempHeight / (float)tempWidth);
-
-        if (tempWidth > tempHeight) {
-            tempWidth = displayHeight;
-            tempHeight = displayWidth;
-            ratio = ((float)tempHeight / (float)tempWidth);
-            destWidth = 1920;
-            destHeight = 1080;
-        }
-
-        mAspectWidth = (int) (destWidth * ratio);
-        mAspectHeight = (int) (destHeight * ratio);
-
-        mediaRecorder.setVideoSize(mAspectWidth, mAspectHeight);
+        mDesiredHeight = desiredHeight;
+        mDesiredWidth = desiredWidth;
+        mediaRecorder.setVideoSize(mDesiredWidth, mDesiredHeight);
 
         mediaRecorder.setOrientationHint(orientationHint);
 
@@ -316,8 +308,8 @@ public class RecordableSurfaceView extends SurfaceView {
 
 
     /**
-     * @see MediaRecorder#start()
      * @return true if the recording started successfully and false if not
+     * @see MediaRecorder#start()
      */
     public boolean startRecording() {
         boolean success = true;
@@ -389,6 +381,7 @@ public class RecordableSurfaceView extends SurfaceView {
 
     /**
      * Queue a runnable to be run on the GL rendering thread.
+     *
      * @param runnable - the runnable to queue
      */
     public void queueEvent(Runnable runnable) {
@@ -405,14 +398,14 @@ public class RecordableSurfaceView extends SurfaceView {
 
         /**
          * The surface has been created and bound to the GL context.
-         *
+         * <p>
          * A GL context is guaranteed to exist when this function is called.
          */
         void onSurfaceCreated();
 
         /**
          * The surface has changed width or height.
-         *
+         * <p>
          * This callback will only be called when there is a change to either or both params
          *
          * @param width  width of the surface
@@ -563,7 +556,8 @@ public class RecordableSurfaceView extends SurfaceView {
                         mSizeChange.set(false);
                     }
 
-                    if (shouldRender) {
+                    if (shouldRender && mEGLSurface != null
+                            && mEGLSurface != EGL14.EGL_NO_SURFACE) {
 
                         if (mRendererCallbacksWeakReference != null
                                 && mRendererCallbacksWeakReference.get() != null) {
@@ -582,7 +576,7 @@ public class RecordableSurfaceView extends SurfaceView {
                                     mEGLContext);
                             if (mRendererCallbacksWeakReference != null
                                     && mRendererCallbacksWeakReference.get() != null) {
-                                GLES20.glViewport(0, 0, mAspectWidth, mAspectHeight);
+                                GLES20.glViewport(0, 0, mDesiredWidth, mDesiredHeight);
                                 mRendererCallbacksWeakReference.get().onDrawFrame();
                                 GLES20.glViewport(0, 0, mWidth, mHeight);
                             }
