@@ -293,8 +293,38 @@ public class RecordableSurfaceView extends SurfaceView {
         mediaRecorder.setVideoEncodingBitRate(12000000);
         mediaRecorder.setVideoFrameRate(30);
 
+        if(desiredWidth > desiredHeight){
+            float desiredAspect = 1080.0f / 1920.0f;
+
+            if(desiredWidth > 1920|| desiredHeight > 1080){
+                float aspect = (float) desiredHeight / desiredWidth;
+                if(aspect > desiredAspect){
+                    desiredHeight = 1080;
+                    desiredWidth = (int) Math.floor(desiredHeight / aspect);
+                } else {
+                    desiredWidth = 1920;
+                    desiredHeight = (int) Math.floor(desiredWidth * aspect);
+                }
+            }
+        } else {
+            float desiredAspect = 1920.0f / 1080.0f;
+
+            if(desiredWidth > 1080 || desiredHeight > 1920){
+                float aspect = (float) desiredHeight / desiredWidth;
+                if(aspect > desiredAspect){
+                    desiredHeight = 1920;
+                    desiredWidth = (int) Math.floor(desiredHeight / aspect);
+                } else {
+                    desiredWidth = 1080;
+                    desiredHeight = (int) Math.floor(desiredWidth * aspect);
+                }
+            }
+        }
+
         mDesiredHeight = desiredHeight;
         mDesiredWidth = desiredWidth;
+
+
         mediaRecorder.setVideoSize(mDesiredWidth, mDesiredHeight);
 
         mediaRecorder.setOrientationHint(orientationHint);
