@@ -43,7 +43,8 @@ captures/
 .idea/codeStyles/
 .idea/compiler.xml
 .idea/encodings.xml
-
+.idea/jarRepositories.xml
+.idea/modules.xml
 # Keystore files
 *.jks
 
