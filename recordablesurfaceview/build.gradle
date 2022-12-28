@@ -1,15 +1,13 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 33
     buildToolsVersion '30.0.3'
 
 
     defaultConfig {
         minSdkVersion 24
-        targetSdkVersion 30
-        versionCode 4
-        versionName "1.5.7"
+        targetSdkVersion 33
 
     }
 
@@ -19,12 +17,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    namespace 'com.uncorkedstudios.android.view.recordablesurfaceview'
 
 }
 
 dependencies {
 //    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
 }
 
 //old plugin didn't work with gradle 4.4+ so this fork is where i'm at.

@@ -53,6 +53,13 @@ public class Triangle {
 
     // number of coordinates per vertex in this array
     static final int COORDS_PER_VERTEX = 3;
+/*
+            0.0f,  0.5f, 0.0f,   // top
+           -0.5f, -0.25f, 0.0f,   // bottom left
+            0.5f, -0.25f, 0.0f    // bottom right
+
+ */
+
     static float triangleCoords[] = {
             // in counterclockwise order:
             0.0f,  0.622008459f, 0.0f,   // top

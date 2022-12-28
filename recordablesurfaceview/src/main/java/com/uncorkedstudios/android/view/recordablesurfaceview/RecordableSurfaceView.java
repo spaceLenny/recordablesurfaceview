@@ -27,7 +27,6 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -324,12 +323,12 @@ public class RecordableSurfaceView extends SurfaceView {
         mDesiredHeight = desiredHeight;
         mDesiredWidth = desiredWidth;
 
-
         mediaRecorder.setVideoSize(mDesiredWidth, mDesiredHeight);
 
         mediaRecorder.setOrientationHint(orientationHint);
 
         mediaRecorder.setOutputFile(saveToFile.getPath());
+
         mediaRecorder.prepare();
 
         mMediaRecorder = mediaRecorder;
@@ -681,8 +680,6 @@ public class RecordableSurfaceView extends SurfaceView {
                 mHeight = height;
                 mSizeChange.set(true);
             }
-
-
         }
 
         @Override
