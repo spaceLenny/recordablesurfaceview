@@ -27,7 +27,6 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -59,7 +58,6 @@ public class RecordableSurfaceView extends SurfaceView {
      * called.
      */
     public static int RENDERMODE_WHEN_DIRTY = GLSurfaceView.RENDERMODE_WHEN_DIRTY;
-
 
     /**
      * The renderer is called continuously to re-render the scene.
@@ -293,43 +291,15 @@ public class RecordableSurfaceView extends SurfaceView {
         mediaRecorder.setVideoEncodingBitRate(12000000);
         mediaRecorder.setVideoFrameRate(30);
 
-        if(desiredWidth > desiredHeight){
-            float desiredAspect = 1080.0f / 2280.0f;
-
-            if(desiredWidth > 2280 || desiredHeight > 1080){
-                float aspect = (float) desiredHeight / desiredWidth;
-                if(aspect > desiredAspect){
-                    desiredHeight = 1080;
-                    desiredWidth = (int) Math.floor(desiredHeight / aspect);
-                } else {
-                    desiredWidth = 2280;
-                    desiredHeight = (int) Math.floor(desiredWidth * aspect);
-                }
-            }
-        } else {
-            float desiredAspect = 2280.0f / 1080.0f;
-
-            if(desiredWidth > 1080 || desiredHeight > 2280){
-                float aspect = (float) desiredHeight / desiredWidth;
-                if(aspect > desiredAspect){
-                    desiredHeight = 2280;
-                    desiredWidth = (int) Math.floor(desiredHeight / aspect);
-                } else {
-                    desiredWidth = 1080;
-                    desiredHeight = (int) Math.floor(desiredWidth * aspect);
-                }
-            }
-        }
-
         mDesiredHeight = desiredHeight;
         mDesiredWidth = desiredWidth;
-
 
         mediaRecorder.setVideoSize(mDesiredWidth, mDesiredHeight);
 
         mediaRecorder.setOrientationHint(orientationHint);
 
         mediaRecorder.setOutputFile(saveToFile.getPath());
+
         mediaRecorder.prepare();
 
         mMediaRecorder = mediaRecorder;
@@ -681,8 +651,6 @@ public class RecordableSurfaceView extends SurfaceView {
                 mHeight = height;
                 mSizeChange.set(true);
             }
-
-
         }
 
         @Override

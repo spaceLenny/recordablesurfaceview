@@ -18,14 +18,24 @@ package com.example.android.opengl;
 import com.uncorkedstudios.android.view.recordablesurfaceview.RecordableSurfaceView;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Insets;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 import android.util.Log;
+import android.util.Size;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowInsets;
+import android.view.WindowMetrics;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,8 +84,7 @@ public class OpenGLES20Activity extends Activity {
             mGLView.resume();
             try {
                 mOutputFile = createVideoOutputFile();
-                android.graphics.Point size = new android.graphics.Point();
-                getWindowManager().getDefaultDisplay().getRealSize(size);
+                android.graphics.Point size = getScreenSize();
                 mGLView.initRecorder(mOutputFile, size.x, size.y, null, null);
             } catch (IOException ioex) {
                 Log.e(TAG, "Couldn't re-init recording", ioex);
@@ -91,40 +100,71 @@ public class OpenGLES20Activity extends Activity {
         return true;
     }
 
+    private Point getScreenSize(){
+
+        Point size = null;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            final WindowMetrics metrics = getWindowManager().getCurrentWindowMetrics();
+            // Gets all excluding insets
+            final WindowInsets windowInsets = metrics.getWindowInsets();
+            Insets insets = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars());
+
+            int insetsWidth = insets.right + insets.left;
+            int insetsHeight = insets.top + insets.bottom;
+
+            // Legacy size that Display#getSize reports
+            final Rect bounds = metrics.getBounds();
+            size = new Point(bounds.width() - insetsWidth,
+                    bounds.height() - insetsHeight);
+        } else {
+            size = new android.graphics.Point();
+            getWindowManager().getDefaultDisplay().getRealSize(size);
+        }
+
+        return size;
+    }
 
     private File createVideoOutputFile() {
-
         File tempFile = null;
+        String filename = new Date().getTime() + "";
+        String filesDir = "";
+
         try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                filesDir = getExternalFilesDir(null).getPath();
+            } else {
+                filesDir = getFilesDir().getCanonicalPath();
+            }
+
             File dirCheck = new File(
-                    getFilesDir().getCanonicalPath() + "/" + "captures");
+                    filesDir + "/" + "captures");
 
             if (!dirCheck.exists()) {
                 dirCheck.mkdirs();
             }
 
-            String filename = new Date().getTime() + "";
             tempFile = new File(
-                    getFilesDir().getCanonicalPath() + "/" + "captures" + "/"
+                    filesDir + "/" + "captures" + "/"
                             + filename + ".mp4");
         } catch (IOException ioex) {
             Log.e(TAG, "Couldn't create output file", ioex);
         }
 
         return tempFile;
-
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-            @NonNull int[] grantResults) {
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         // Note that order matters - see the note in onPause(), the reverse applies here.
         mGLView.resume();
         try {
             mOutputFile = createVideoOutputFile();
-            android.graphics.Point size = new android.graphics.Point();
-            getWindowManager().getDefaultDisplay().getRealSize(size);
+            android.graphics.Point size = getScreenSize();
+
             mGLView.initRecorder(mOutputFile, size.x, size.y, null, null);
         } catch (IOException ioex) {
             Log.e(TAG, "Couldn't re-init recording", ioex);
@@ -140,9 +180,6 @@ public class OpenGLES20Activity extends Activity {
                     "com.example.android.opengl.fileprovider", mOutputFile);
 
             share(contentUri);
-
-            mIsRecording = false;
-
             mIsRecording = false;
             mOutputFile = createVideoOutputFile();
 
