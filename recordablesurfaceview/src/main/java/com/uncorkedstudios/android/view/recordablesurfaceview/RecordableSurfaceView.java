@@ -76,7 +76,6 @@ public class RecordableSurfaceView extends SurfaceView {
 
     private int mDesiredHeight = 0;
 
-
     private boolean mPaused = false;
 
     private MediaRecorder mMediaRecorder;
@@ -87,11 +86,18 @@ public class RecordableSurfaceView extends SurfaceView {
 
     private AtomicBoolean mHasGLContext = new AtomicBoolean(false);
 
+    private AtomicBoolean mHasGLSurface = new AtomicBoolean(false);
+
     private WeakReference<RendererCallbacks> mRendererCallbacksWeakReference;
 
     private AtomicBoolean mSizeChange = new AtomicBoolean(false);
 
     private AtomicBoolean mRenderRequested = new AtomicBoolean(false);
+
+    private static EGLContext mEGLContext;
+
+    private boolean mPreserveEGLContextOnPause;
+
 
     /**
      * @param context -
@@ -141,7 +147,7 @@ public class RecordableSurfaceView extends SurfaceView {
      */
     public void doSetup() {
 
-        if (!mHasGLContext.get()) {
+        if (!mHasGLSurface.get()) {
             mSurface = MediaCodec.createPersistentInputSurface();
             mARRenderThread = new ARRenderThread();
         }
@@ -209,6 +215,47 @@ public class RecordableSurfaceView extends SurfaceView {
     public void setRenderMode(int mode) {
         mRenderMode.set(mode);
     }
+
+    /**
+     * Set whether or not EGL Context is preserved when the view is paused & resumed.
+     * <p>
+     *     If true, then EGL Context <i>may</i> be preserved.
+     * </p>
+     * <p>
+     * Note that on some devices and older Android versions, the Context may not be
+     * preserved due to limitations of GPU hardware.
+     * </p>
+     * <p>
+     *     If false, the Context will be released when paused, and recreated when resumed.
+     * </p>
+     *
+     * Default is false.
+     * @param preserve preserve the Context on pause
+     */
+    public void setPreserveEGLContextOnPause(boolean preserve) {
+        mPreserveEGLContextOnPause = preserve;
+    }
+
+    /**
+     * returns whether or not to attempt to preserve the Context on pause.
+     */
+
+    public boolean getPreserveEGLContextOnPause() {
+        return mPreserveEGLContextOnPause;
+    }
+
+    /**
+     * Resets the {@link MediaRecorder} to let it be cleanly re-initialized without destroying the
+     * process
+     */
+    public void resetMediaRecorder() {
+        if (mMediaRecorder == null || mIsRecording.get()) {
+            return;
+        }
+        mMediaRecorder.reset();
+    }
+
+
 
     /**
      * Request that the renderer render a frame.
@@ -480,16 +527,19 @@ public class RecordableSurfaceView extends SurfaceView {
 
         @Override
         public void run() {
-            if (mHasGLContext.get()) {
+            if (mHasGLSurface.get()) {
                 return;
             }
             mEGLDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
             int[] version = new int[2];
             EGL14.eglInitialize(mEGLDisplay, version, 0, version, 1);
             EGLConfig eglConfig = chooseEglConfig(mEGLDisplay);
-            mEGLContext = EGL14
-                    .eglCreateContext(mEGLDisplay, eglConfig, EGL14.EGL_NO_CONTEXT,
-                            new int[]{EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL14.EGL_NONE}, 0);
+            if (!mHasGLContext.get()) {
+                mEGLContext = EGL14
+                        .eglCreateContext(mEGLDisplay, eglConfig, EGL14.EGL_NO_CONTEXT,
+                                new int[]{EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL14.EGL_NONE}, 0);
+                mHasGLContext.set(true);
+            }
 
             int[] surfaceAttribs = {
                     EGL14.EGL_NONE
@@ -516,7 +566,7 @@ public class RecordableSurfaceView extends SurfaceView {
 
             GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-            mHasGLContext.set(true);
+            mHasGLSurface.set(true);
 
             if (mRendererCallbacksWeakReference != null
                     && mRendererCallbacksWeakReference.get() != null) {
@@ -591,7 +641,6 @@ public class RecordableSurfaceView extends SurfaceView {
                         event.run();
                     }
                 }
-
                 try {
                     Thread.sleep((long) (1f / 60f * 1000f));
                 } catch (InterruptedException intex) {
@@ -601,9 +650,11 @@ public class RecordableSurfaceView extends SurfaceView {
                     }
 
                     if (mEGLDisplay != null) {
-                        EGL14.eglMakeCurrent(mEGLDisplay, EGL14.EGL_NO_SURFACE,
+                        EGL14.eglMakeCurrent(
+                                mEGLDisplay,
                                 EGL14.EGL_NO_SURFACE,
-                                EGL14.EGL_NO_CONTEXT);
+                                EGL14.EGL_NO_SURFACE,
+                                mPreserveEGLContextOnPause ? mEGLContext : EGL14.EGL_NO_CONTEXT);
 
                         if (mEGLSurface != null) {
                             EGL14.eglDestroySurface(mEGLDisplay, mEGLSurface);
@@ -612,9 +663,12 @@ public class RecordableSurfaceView extends SurfaceView {
                         if (mEGLSurfaceMedia != null) {
                             EGL14.eglDestroySurface(mEGLDisplay, mEGLSurfaceMedia);
                         }
+                        if (!mPreserveEGLContextOnPause) {
+                            EGL14.eglDestroyContext(mEGLDisplay, mEGLContext);
+                            mHasGLContext.set(false);
+                        }
 
-                        EGL14.eglDestroyContext(mEGLDisplay, mEGLContext);
-                        mHasGLContext.set(false);
+                        mHasGLSurface.set(false);
                         EGL14.eglReleaseThread();
                         EGL14.eglTerminate(mEGLDisplay);
                         mSurface.release();
