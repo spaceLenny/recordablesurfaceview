@@ -1,7 +1,8 @@
 # RecordableSurfaceView
 
-RecordableSurfaceView is a lightweight library designed to bring MP4 recording of an OpenGL renderer on Android to your app with ease.
+RecordableSurfaceView is a lightweight library designed to record an Android OpenGL renderer and output an MP4 with minimal configuration or refactoring..
 
+Features: 
   - Functionally a drop-in replacement for GLSurfaceView
   - Full lifecycle callbacks in a View tree.
   - Minimal effort to implement.
